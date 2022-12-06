@@ -3,15 +3,14 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import { ptBR } from 'date-fns/locale';
 import { getPrismicClient } from '../services/prismic';
-import { format } from 'date-fns';
-import { useState } from 'react';
-import Head from 'next/head';
 
 import { FiCalendar, FiUser } from 'react-icons/fi';
+import { Head } from 'next/document';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
-
+import { format } from 'date-fns';
+import { useState } from 'react';
 
 interface Post {
   uid?: string;
@@ -35,17 +34,23 @@ interface HomeProps {
 export default function Home({ postsPagination }: HomeProps) {
   const formattedPosts = postsPagination.results.map(post => ({
     ...post,
-    first_publication_date: format(new Date(post.first_publication_date), 'dd MMM yyyy', {locale: ptBR})
-  }))
+    first_publication_date: format(
+      new Date(post.first_publication_date),
+      'dd MMM yyyy',
+      {
+        locale: ptBR,
+      }
+    ),
+  }));
 
-  const [ posts, setPosts ] = useState<Post[]>(formattedPosts);
-  const [ nextPage, setNextPage ] = useState(postsPagination.next_page);
+  const [posts, setPosts] = useState<Post[]>(formattedPosts);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
   async function handleNextPage(): Promise<void> {
     if (nextPage === null) return;
 
     const postsResults = await fetch(nextPage)
-      .then(response => response.json())
+    .then(response => response.json());
 
     setNextPage(postsResults.next_page);
 
@@ -53,16 +58,16 @@ export default function Home({ postsPagination }: HomeProps) {
       return {
         ...post,
         first_publication_date: format(
-          new Date(post.first_publication_date), 
+          new Date(post.first_publication_date),
           'dd MMM yyyy',
           {
-            locale: ptBR
+            locale: ptBR,
           }
-        )
-      }
+        ),
+      };
     });
 
-    setPosts([...posts, ...newPosts])
+    setPosts([...posts, ...newPosts]);
   }
   return (
     <>
@@ -101,8 +106,7 @@ export default function Home({ postsPagination }: HomeProps) {
         </div>
       </main>
     </>
-    
-  )
+  );
 }
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -111,18 +115,18 @@ export const getStaticProps: GetStaticProps = async () => {
     pageSize: 3,
     orderings: {
       field: 'last_publication_date',
-      direction: 'desc'
-    }
+      direction: 'desc',
+    },
   });
 
   const postsPagination = {
     next_page: postsResponse.next_page,
-    results: postsResponse.results
-  }
+    results: postsResponse.results,
+  };
 
   return {
     props: {
-      postsPagination
-    }
-  }
+      postsPagination,
+    },
+  };
 };
